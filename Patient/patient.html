@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Details</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #fbc2eb, #a6c1ee); /* Gradient background */
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #444;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #555;
+        }
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            border-color: #6a11cb;
+            outline: none;
+        }
+        button {
+            margin-top: 15px;
+            padding: 12px;
+            width: 100%;
+            background-color: #6a11cb;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button.view-btn {
+            background-color: #ff6a00;
+        }
+        button:hover {
+            background-color: #8131d9;
+        }
+        button.view-btn:hover {
+            background-color: #ff7e40;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            width: 600px;
+            height: 70%;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow-y: auto;
+        }
+        .close-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 14px;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #6a11cb;
+            color: white;
+            font-weight: 700;
+        }
+        .edit-btn, .delete-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .edit-btn {
+            background-color: #ffc107;
+            color: #fff;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        td:last-child {
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>Patient Details</h2>
+    <form id="patientForm">
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div class="form-group">
+            <label for="age">Age</label>
+            <input type="number" id="age" name="age" required>
+        </div>
+        <div class="form-group">
+            <label for="diseases">Diseases</label>
+            <input type="text" id="diseases" name="diseases" required>
+        </div>
+        <div class="form-group">
+            <label for="gender">Gender</label>
+            <input type="text" id="gender" name="gender" required>
+        </div>
+        <div class="form-group">
+            <label for="billing">Billing Amount</label>
+            <input type="number" id="billing" name="billing" required>
+        </div>
+        <button type="submit">Add Patient</button>
+        <button type="button" id="viewButton" class="view-btn">View Patients</button>
+    </form>
+    <p id="responseMessage" style="text-align: center; margin-top: 20px;"></p>
+</div>
+
+<!-- Modal for Viewing Patients -->
+<div id="viewModal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" id="closeModal">Close</button>
+        <h2>Patient Data</h2>
+        <table id="patientTable">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Age</th>
+                <th>Diseases</th>
+                <th>Gender</th>
+                <th>Billing</th>
+                <th>Actions</th>
+            </tr>
+        </table>
+    </div>
+</div>
+
+
+<!-- Existing code -->
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" id="closeEditModal">Close</button>
+        <h2>Edit Patient</h2>
+        <form id="editPatientForm">
+            <input type="hidden" id="editPatientId"> <!-- Hidden field for Patient ID -->
+            <div class="form-group">
+                <label for="editName">Name</label>
+                <input type="text" id="editName" name="editName" required>
+            </div>
+            <div class="form-group">
+                <label for="editAge">Age</label>
+                <input type="number" id="editAge" name="editAge" required>
+            </div>
+            <div class="form-group">
+                <label for="editDiseases">Diseases</label>
+                <input type="text" id="editDiseases" name="editDiseases" required>
+            </div>
+            <div class="form-group">
+                <label for="editGender">Gender</label>
+                <input type="text" id="editGender" name="editGender" required>
+            </div>
+            <div class="form-group">
+                <label for="editBilling">Billing Amount</label>
+                <input type="number" id="editBilling" name="editBilling" required>
+            </div>
+            <button type="submit">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+<!-- Existing code -->
+
+
+<script>
+    document.getElementById('patientForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const name = document.getElementById('name').value;
+        const age = document.getElementById('age').value;
+        const diseases = document.getElementById('diseases').value;
+        const gender = document.getElementById('gender').value;
+        const billing = document.getElementById('billing').value;
+
+        const data = {
+            name: name,
+            age: parseInt(age),
+            diseases: diseases,
+            gender: gender,
+            billing: parseInt(billing)
+        };
+
+        fetch('http://localhost:8080/api/patient', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('responseMessage').textContent = data;
+            document.getElementById('patientForm').reset();
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            document.getElementById('responseMessage').textContent = "An error occurred";
+        });
+    });
+
+
+   // View button event listener
+// View button event listener
+document.getElementById('viewButton').addEventListener('click', function() {
+    // Fetch all patient data from the backend
+
+    fetch('http://localhost:8080/api/patient/all-patients-with-billing', {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Get the table body element
+        const table = document.getElementById('patientTable');
+
+        // Clear any existing table rows except for the header
+        table.innerHTML = `
+            <tr>
+                <th>ID</th> <!-- ID column in the table header -->
+                <th>Name</th>
+                <th>Age</th>
+                <th>Diseases</th>
+                <th>Gender</th>
+                <th>Billing</th>
+                <th>Actions</th>
+            </tr>
+        `;
+
+        // Loop through the patient data and create rows
+        data.forEach(patient => {
+            const row = table.insertRow();
+            row.innerHTML = `
+                <td>${patient.id}</td> <!-- Display ID here -->
+                <td>${patient.name}</td>
+                <td>${patient.age}</td>
+                <td>${patient.diseases}</td>
+                <td>${patient.gender}</td>
+                <td>${patient.billing !== undefined ? patient.billing : (patient.billingAmount || 'N/A')}</td>
+                <td>
+                    <button class="edit-btn">Edit</button>
+                    <button class="delete-btn">Delete</button>
+                </td>
+            `;
+        });
+
+        // Open the modal to display the data
+        document.getElementById('viewModal').style.display = 'flex';
+    })
+    .catch(error => {
+        console.error('Error fetching patient data:', error);
+        document.getElementById('responseMessage').textContent = "Error fetching data";
+    });
+});
+
+
+
+    // Close modal event listener
+    document.getElementById('closeModal').addEventListener('click', function() {
+        document.getElementById('viewModal').style.display = 'none';
+    });
+
+    // Add event listeners to dynamically generated edit buttons   edit
+document.getElementById('patientTable').addEventListener('click', function(event) {
+    if (event.target && event.target.classList.contains('edit-btn')) {
+        const row = event.target.closest('tr');
+        const patientId = row.cells[0].textContent;
+        const name = row.cells[1].textContent;
+        const age = row.cells[2].textContent;
+        const diseases = row.cells[3].textContent;
+        const gender = row.cells[4].textContent;
+        const billing = row.cells[5].textContent;
+
+        // Populate the edit form with existing patient data
+        document.getElementById('editPatientId').value = patientId;
+        document.getElementById('editName').value = name;
+        document.getElementById('editAge').value = age;
+        document.getElementById('editDiseases').value = diseases;
+        document.getElementById('editGender').value = gender;
+        document.getElementById('editBilling').value = billing;
+
+        // Show the edit modal
+        document.getElementById('editModal').style.display = 'flex';
+    }
+});
+
+// Close the edit modal
+document.getElementById('closeEditModal').addEventListener('click', function() {
+    document.getElementById('editModal').style.display = 'none';
+});
+
+    // Handle form submission for editing patient data
+document.getElementById('editPatientForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const patientId = document.getElementById('editPatientId').value;
+    const name = document.getElementById('editName').value;
+    const age = document.getElementById('editAge').value;
+    const diseases = document.getElementById('editDiseases').value;
+    const gender = document.getElementById('editGender').value;
+    const billing = document.getElementById('editBilling').value;
+
+    const updatedData = {
+        id: patientId,
+        name: name,
+        age: parseInt(age),
+        diseases: diseases,
+        gender: gender,
+        billing: parseInt(billing)
+    };
+
+    // Send a PUT request to update the patient data
+    fetch(`http://localhost:8080/api/patient/update`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedData)
+    })
+    .then(response => response.text())  // Treat the response as a plain text message
+    .then(data => {
+        document.getElementById('responseMessage').textContent = data; // Display the success message
+
+        // Close the modal and refresh the patient list
+        document.getElementById('editModal').style.display = 'none';
+        document.getElementById('viewButton').click();  // Refresh patient list
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+        document.getElementById('responseMessage').textContent = "An error occurred";
+    });
+});
+
+
+</script>
+</body>
+</html>
